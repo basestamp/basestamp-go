@@ -1,0 +1,108 @@
+version: 2
+
+# Basic info
+project_name: basestamp
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+# Build configuration
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: "386"
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+    main: ./cmd/basestamp
+    id: basestamp
+    binary: basestamp
+
+# Archives
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+
+# Checksums
+checksum:
+  name_template: 'checksums.txt'
+
+# Snapshots (development builds)
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+# Homebrew configuration
+brews:
+  - name: basestamp
+    repository:
+      owner: basestamp
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    url_template: "https://github.com/basestamp/basestamp-go/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    homepage: "https://basestamp.io"
+    description: "Cryptographic timestamping for files using blockchain technology"
+    license: "MIT"
+    test: |
+      system "#{bin}/basestamp --version"
+    install: |
+      bin.install "basestamp"
+    commit_author:
+      name: goreleaser
+      email: noreply@goreleaser.com
+    folder: Formula
+
+# GitHub release
+release:
+  github:
+    owner: basestamp
+    name: basestamp-go
+  draft: false
+  prerelease: auto
+  name_template: "{{.ProjectName}}-v{{.Version}}"
+
+# Changelog
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: 'New Features'
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: 'Bug Fixes'
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: 'Performance Improvements'
+      regexp: '^.*?perf(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: Others
+      order: 999
