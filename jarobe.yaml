@@ -1,0 +1,9 @@
+version: 1
+name: basestamp-go
+display_name: Basestamp
+kind: sdk
+remote: basestamp/basestamp-go
+language: go
+package_manager: go
+verify: generic
+deploy: none
