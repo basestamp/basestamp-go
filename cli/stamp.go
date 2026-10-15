@@ -155,7 +155,7 @@ func runStamp(cmd *cobra.Command, args []string) error {
 		fmt.Printf("🔍 DEBUG: Request body: %s\n", string(reqBody))
 	}
 
-	resp, err := http.Post(serverURL+"/stamp", "application/json", bytes.NewReader(reqBody))
+	resp, err := cliHTTP.Post(serverURL+"/stamp", "application/json", bytes.NewReader(reqBody))
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}
@@ -280,7 +280,7 @@ func waitForConfirmation(stampID string, hashMode bool) (map[string]interface{},
 			fmt.Printf("🔍 DEBUG: GET %s\n", statusURL)
 		}
 		
-		resp, err := http.Get(statusURL)
+		resp, err := cliHTTP.Get(statusURL)
 		if err != nil {
 			if verbose {
 				fmt.Printf("🔍 DEBUG: Request failed: %v\n", err)

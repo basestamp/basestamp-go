@@ -235,7 +235,7 @@ func verifyWithStampID(filename string, stamp *types.FileStamp) error {
 		fmt.Printf("🔍 DEBUG: GET %s\n", stampURL)
 	}
 
-	resp, err := http.Get(stampURL)
+	resp, err := cliHTTP.Get(stampURL)
 	if err != nil {
 		return fmt.Errorf("failed to send verify request: %w", err)
 	}
@@ -321,7 +321,7 @@ func verifyWithStampIDAndHash(hash string, stamp *types.FileStamp) error {
 		fmt.Printf("🔍 DEBUG: GET %s\n", stampURL)
 	}
 
-	resp, err := http.Get(stampURL)
+	resp, err := cliHTTP.Get(stampURL)
 	if err != nil {
 		return fmt.Errorf("failed to send verify request: %w", err)
 	}

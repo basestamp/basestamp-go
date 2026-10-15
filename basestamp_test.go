@@ -599,3 +599,17 @@ func TestGetStampOnce_InvalidJSON(t *testing.T) {
 		t.Errorf("Expected JSON decode error, got: %v", err)
 	}
 }
+func TestClientSendsUserAgent(t *testing.T) {
+	var got string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		got = r.Header.Get("User-Agent")
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"stamp_id":"abc"}`))
+	}))
+	defer srv.Close()
+	c := NewClientWithURL(srv.URL)
+	_, _ = c.SubmitSHA256(CalculateSHA256("x"))
+	if !strings.HasPrefix(got, "basestamp-go/"+Version) {
+		t.Fatalf("unexpected User-Agent %q", got)
+	}
+}

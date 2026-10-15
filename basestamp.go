@@ -90,7 +90,8 @@ func NewClientWithURL(apiURL string) *Client {
 	return &Client{
 		apiURL: strings.TrimSuffix(apiURL, "/"),
 		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout:   30 * time.Second,
+			Transport: NewUserAgentTransport(UserAgent(), nil),
 		},
 	}
 }
