@@ -613,3 +613,15 @@ func TestClientSendsUserAgent(t *testing.T) {
 		t.Fatalf("unexpected User-Agent %q", got)
 	}
 }
+
+func TestDefaultIsMainnet(t *testing.T) {
+	if DefaultAPIURL != "https://api-mainnet.basestamp.io" {
+		t.Errorf("default should be mainnet, got %s", DefaultAPIURL)
+	}
+	if SepoliaAPIURL != "https://api-sepolia.basestamp.io" || SepoliaChainID != 84532 || MainnetChainID != 8453 {
+		t.Error("unexpected network constants")
+	}
+	if c := NewClientWithURL(SepoliaAPIURL); c.apiURL != SepoliaAPIURL {
+		t.Errorf("sepolia client url = %s", c.apiURL)
+	}
+}

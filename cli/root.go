@@ -53,7 +53,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.basestamp.yaml)")
-	rootCmd.PersistentFlags().StringVar(&serverURL, "server", "https://api.basestamp.io", "BaseStamp server URL")
+	rootCmd.PersistentFlags().StringVar(&serverURL, "server", "https://api-mainnet.basestamp.io", "BaseStamp server URL (Base mainnet; use https://api-sepolia.basestamp.io for testnet)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	_ = viper.BindPFlag("server", rootCmd.PersistentFlags().Lookup("server"))

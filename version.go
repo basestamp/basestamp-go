@@ -7,7 +7,7 @@ import (
 )
 
 // Version is the basestamp-go SDK version, reported in the User-Agent header.
-const Version = "0.1.0"
+const Version = "0.2.0"
 
 // UserAgent is the User-Agent sent by Client, e.g. "basestamp-go/0.1.0 (go1.22.1; linux/amd64)".
 // It lets the Basestamp service count usage per SDK and version. No other data is sent.

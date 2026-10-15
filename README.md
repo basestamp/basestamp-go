@@ -290,7 +290,7 @@ git push origin v1.0.0
 
 The CLI uses the following configuration:
 
-- **Server URL**: Default is `https://api.basestamp.io`
+- **Server URL**: Default is `https://api-mainnet.basestamp.io` (Base mainnet, chain 8453). For Base Sepolia testnet use `--server https://api-sepolia.basestamp.io` or `basestamp.NewClientWithURL(basestamp.SepoliaAPIURL)`
 - **Config File**: `~/.basestamp.yaml` (optional)
 - **Environment Variables**: 
   - `BASESTAMP_SERVER` - Override default server URL
@@ -323,4 +323,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - [BaseStamp Website](https://basestamp.io)
 - [Python Client](https://github.com/basestamp/basestamp-python)
 - [Documentation](https://docs.basestamp.io)
-- [API Documentation](https://api.basestamp.io)
+- [API Documentation](https://basestamp.io/docs/mcp)

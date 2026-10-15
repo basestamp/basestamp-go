@@ -68,7 +68,7 @@ The command validates the blockchain proof to ensure authenticity.`,
   basestamp verify document.pdf --verbose
 
   # Verify using a different server
-  basestamp verify document.pdf --server https://api.basestamp.io`,
+  basestamp verify document.pdf --server https://api-sepolia.basestamp.io   # Base Sepolia testnet`,
 }
 
 func init() {
@@ -509,7 +509,7 @@ func getBlockchainExplorerURL(network, txID string) string {
 	switch network {
 	case "BASE Sepolia":
 		return fmt.Sprintf("https://sepolia.basescan.org/tx/%s", txID)
-	case "BASE":
+	case "BASE", "BASE Mainnet":
 		return fmt.Sprintf("https://basescan.org/tx/%s", txID)
 	case "Ethereum":
 		return fmt.Sprintf("https://etherscan.io/tx/%s", txID)

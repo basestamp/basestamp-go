@@ -242,7 +242,7 @@ func (v *BlockchainVerifier) getRPCURL(network string) (string, error) {
 	switch network {
 	case "BASE Sepolia":
 		return "https://sepolia.base.org", nil
-	case "BASE":
+	case "BASE", "BASE Mainnet":
 		return "https://mainnet.base.org", nil
 	case "Ethereum":
 		return "https://eth.llamarpc.com", nil
@@ -258,7 +258,7 @@ func (v *BlockchainVerifier) getMinConfirmations(network string) uint64 {
 	switch network {
 	case "BASE Sepolia":
 		return 1 // Testnet - lower requirement
-	case "BASE":
+	case "BASE", "BASE Mainnet":
 		return 5 // Mainnet - higher requirement
 	case "Ethereum":
 		return 12 // Ethereum - highest requirement
