@@ -22,7 +22,7 @@ func HashFile(filename string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to open file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	hash := sha256.New()
 	if _, err := io.Copy(hash, file); err != nil {
@@ -59,9 +59,9 @@ func ValidateHash(hash string) error {
 // This structure prevents rainbow table attacks by combining the original
 // file hash with a random nonce before timestamping.
 type StampedHash struct {
-	FileHash string `json:"file_hash"`     // Original file hash
-	Nonce    string `json:"nonce"`         // Random nonce for privacy
-	Hash     string `json:"hash"`          // Final hash sent to server (SHA256(file_hash + nonce))
+	FileHash string `json:"file_hash"` // Original file hash
+	Nonce    string `json:"nonce"`     // Random nonce for privacy
+	Hash     string `json:"hash"`      // Final hash sent to server (SHA256(file_hash + nonce))
 }
 
 // CreateStampedHash creates a stamped hash with nonce for privacy.
@@ -73,17 +73,17 @@ func CreateStampedHash(filename string) (*StampedHash, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash file: %w", err)
 	}
-	
+
 	// Generate a random 16-byte nonce for privacy
 	nonce := make([]byte, 16)
 	if _, err := rand.Read(nonce); err != nil {
 		return nil, fmt.Errorf("failed to generate nonce: %w", err)
 	}
 	nonceHex := hex.EncodeToString(nonce)
-	
+
 	// Create the final hash: SHA256(file_hash + nonce)
 	finalHash := HashString(fileHash + nonceHex)
-	
+
 	return &StampedHash{
 		FileHash: fileHash,
 		Nonce:    nonceHex,
@@ -99,17 +99,17 @@ func VerifyStampedHash(filename string, sh *StampedHash) error {
 	if err != nil {
 		return fmt.Errorf("failed to hash file: %w", err)
 	}
-	
+
 	// Check if file hash matches
 	if fileHash != sh.FileHash {
 		return fmt.Errorf("file hash mismatch: expected %s, got %s", sh.FileHash, fileHash)
 	}
-	
+
 	// Recreate the final hash
 	expectedFinalHash := HashString(sh.FileHash + sh.Nonce)
 	if expectedFinalHash != sh.Hash {
 		return fmt.Errorf("stamped hash verification failed")
 	}
-	
+
 	return nil
 }

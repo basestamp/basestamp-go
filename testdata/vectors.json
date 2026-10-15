@@ -1,0 +1,460 @@
+[
+  {
+    "name": "mainnet-single-leaf-python-e2e",
+    "description": "Real Base mainnet stamp from the basestamp-python E2E run (single-leaf batch, leaf == root).",
+    "hash": "0c2c89d6cec6b9c9bd32e929245e2148f34c1196f5fee840680eb99391797b04",
+    "nonce": "1792084040825303971",
+    "proof": {
+      "leaf_hash": "2c40530e143439d1544458803f311477d5853d6488b6ed8ff66d59fb9f510ee2",
+      "leaf_index": 0,
+      "siblings": [],
+      "directions": [],
+      "root_hash": "2c40530e143439d1544458803f311477d5853d6488b6ed8ff66d59fb9f510ee2"
+    },
+    "expected_root": "2c40530e143439d1544458803f311477d5853d6488b6ed8ff66d59fb9f510ee2",
+    "valid": true,
+    "stamp_id": "1c6abb972a26a1c692628788970ec186841396d5c0bc2cd21f6c1dcd38d9b048",
+    "tx_id": "0xe6b893740c88652ada17540223e20f68c160787329776404ff54f615937e6261",
+    "chain_id": 8453
+  },
+  {
+    "name": "mainnet-3-leaf-batch-index-0",
+    "description": "Real Base mainnet stamp from the basestamp-ts E2E run (3-leaf batch).",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": true,
+    "stamp_id": "10542ea21b15a00212436b46b83b5db8014e0b2d286abfc54cb4305705648af4",
+    "tx_id": "0xb655fb0d467d763667fcf61dbcea71d3a7c8239c988fb8d859dd34260bd5eee1",
+    "chain_id": 8453
+  },
+  {
+    "name": "mainnet-3-leaf-batch-index-1",
+    "description": "Real Base mainnet stamp from the basestamp-ts E2E run (3-leaf batch).",
+    "hash": "6834d83b574921b14af3b41be5561f0150af911f38334e7750325a34d8d581dd",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+      "leaf_index": 1,
+      "siblings": [
+        "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        false,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": true,
+    "stamp_id": "9259f1621566e0e4ff51eaa12c53240e9f8179131c82bfb62930bc2de56e33dd",
+    "tx_id": "0xb655fb0d467d763667fcf61dbcea71d3a7c8239c988fb8d859dd34260bd5eee1",
+    "chain_id": 8453
+  },
+  {
+    "name": "mainnet-3-leaf-batch-index-2",
+    "description": "Real Base mainnet stamp from the basestamp-ts E2E run (3-leaf batch, odd last node paired with itself).",
+    "hash": "e1835faddd5d3a1e78d2b22eb2478b297deb043246eceed789800778053eb8d7",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "86551c73a8ab005ae2113636ed4654fab6fc83817c83348281e10e0646ae1281",
+      "leaf_index": 2,
+      "siblings": [
+        "86551c73a8ab005ae2113636ed4654fab6fc83817c83348281e10e0646ae1281",
+        "7e9ce0128ed417b0ba579b55a32f0b33b0dbe0c4e61657f4e47efd29dc15765f"
+      ],
+      "directions": [
+        true,
+        false
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": true,
+    "stamp_id": "2823299f48914a2112e8cedc573d59d633fec5a6f2d20aa6adc613b3365b80bd",
+    "tx_id": "0xb655fb0d467d763667fcf61dbcea71d3a7c8239c988fb8d859dd34260bd5eee1",
+    "chain_id": 8453
+  },
+  {
+    "name": "mainnet-single-leaf-go-e2e",
+    "description": "Real Base mainnet stamp from the basestamp-go E2E run (single-leaf batch, leaf == root).",
+    "hash": "f8906cf55527395dd842b4b02f0f60d77cb55b579ddd0514b213d553cd233efe",
+    "nonce": "1792084465820778959",
+    "proof": {
+      "leaf_hash": "81ffa7877b32cbde1681149f9b48ac2b8edeb57c3bc5f16f53aad2712c6e5aab",
+      "leaf_index": 0,
+      "siblings": [],
+      "directions": [],
+      "root_hash": "81ffa7877b32cbde1681149f9b48ac2b8edeb57c3bc5f16f53aad2712c6e5aab"
+    },
+    "expected_root": "81ffa7877b32cbde1681149f9b48ac2b8edeb57c3bc5f16f53aad2712c6e5aab",
+    "valid": true,
+    "stamp_id": "36e05662b5ef175b70f937c245185435da49dfb245f86f44a6269d81cdd5b9b3",
+    "tx_id": "0x846515a571444a046b0f87c86ac2d543a3b5d0af8a084a14a6d5fc5e19f012ce",
+    "chain_id": 8453
+  },
+  {
+    "name": "tampered-leaf-hash",
+    "description": "leaf_hash altered by one nibble",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "03e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "tampered-proof-root",
+    "description": "proof.root_hash altered (expected_root unchanged)",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "020a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "tampered-root-both",
+    "description": "proof.root_hash and expected_root both altered consistently",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "020a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "020a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "tampered-expected-root",
+    "description": "expected_root (e.g. on-chain/merkle_root value) differs from proof root",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b0",
+    "valid": false
+  },
+  {
+    "name": "tampered-sibling-0",
+    "description": "first sibling altered",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6350ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "tampered-sibling-1",
+    "description": "last sibling altered",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b160"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "siblings-reordered",
+    "description": "sibling order swapped",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164",
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "sibling-removed",
+    "description": "proof truncated by one level",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962"
+      ],
+      "directions": [
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "sibling-appended",
+    "description": "extra level appended",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true,
+        true,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "wrong-hash",
+    "description": "hash input does not match the leaf (leaf binding fails)",
+    "hash": "9b5ab07b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "wrong-nonce",
+    "description": "nonce does not match the leaf (leaf binding fails)",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457905",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "hash-nonce-order-swapped",
+    "description": "leaf computed as SHA256(hash + nonce) is NOT the server construction; supplying the nonce as hash-suffix must fail",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "f3218d56e779cac5cd2574e28790d703668613aa1eff84fe457e0b0b96ee05c0",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "directions-length-mismatch",
+    "description": "directions shorter than siblings",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "malformed-sibling-hex",
+    "description": "sibling is not valid hex",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "zz3dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "short-sibling",
+    "description": "sibling is 31 bytes",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de709",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        true,
+        true
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": false
+  },
+  {
+    "name": "directions-flipped",
+    "description": "Internal nodes use sorted-pair hashing, so directions do not affect the root: flipping them still verifies (directions are informational).",
+    "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
+    "nonce": "1792084020825457904",
+    "proof": {
+      "leaf_hash": "83e66150c69969917c93f619440670ef7ba109a8cbf9a3564dce55af3a79ab90",
+      "leaf_index": 0,
+      "siblings": [
+        "633dc8a6358ea3e434488eba0639a5d615cf3a64008465d8efae1f3e5de70962",
+        "09d265371f02f7301873c76fec659931bf15102b8f043c16a67a80ecd254b164"
+      ],
+      "directions": [
+        false,
+        false
+      ],
+      "root_hash": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5"
+    },
+    "expected_root": "e20a3da731c0d8f1654f32131d74e93c8221982462772fa780b76657608f62b5",
+    "valid": true
+  },
+  {
+    "name": "single-leaf-tampered-leaf",
+    "description": "single-leaf proof with leaf altered (root unchanged)",
+    "hash": "0c2c89d6cec6b9c9bd32e929245e2148f34c1196f5fee840680eb99391797b04",
+    "nonce": "1792084040825303971",
+    "proof": {
+      "leaf_hash": "0c40530e143439d1544458803f311477d5853d6488b6ed8ff66d59fb9f510ee2",
+      "leaf_index": 0,
+      "siblings": [],
+      "directions": [],
+      "root_hash": "2c40530e143439d1544458803f311477d5853d6488b6ed8ff66d59fb9f510ee2"
+    },
+    "expected_root": "2c40530e143439d1544458803f311477d5853d6488b6ed8ff66d59fb9f510ee2",
+    "valid": false
+  }
+]

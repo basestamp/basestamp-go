@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	cfgFile    string
-	serverURL  string
-	verbose    bool
+	cfgFile   string
+	serverURL string
+	verbose   bool
 )
 
 var rootCmd = &cobra.Command{

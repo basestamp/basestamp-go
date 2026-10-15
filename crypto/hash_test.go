@@ -15,7 +15,7 @@ func TestHashFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpfile.Name())
+	defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 	if _, err := tmpfile.Write([]byte(content)); err != nil {
 		t.Fatal(err)
@@ -33,7 +33,7 @@ func TestHashFile(t *testing.T) {
 	// Verify the hash is correct
 	expected := sha256.Sum256([]byte(content))
 	expectedHex := hex.EncodeToString(expected[:])
-	
+
 	if hash != expectedHex {
 		t.Errorf("Expected hash %s, got %s", expectedHex, hash)
 	}
@@ -60,8 +60,8 @@ func TestHashFile_EmptyFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpfile.Name())
-	tmpfile.Close()
+	defer func() { _ = os.Remove(tmpfile.Name()) }()
+	_ = tmpfile.Close()
 
 	hash, err := HashFile(tmpfile.Name())
 	if err != nil {
@@ -71,7 +71,7 @@ func TestHashFile_EmptyFile(t *testing.T) {
 	// Hash of empty string
 	expected := sha256.Sum256([]byte(""))
 	expectedHex := hex.EncodeToString(expected[:])
-	
+
 	if hash != expectedHex {
 		t.Errorf("Expected hash %s for empty file, got %s", expectedHex, hash)
 	}
@@ -83,22 +83,22 @@ func TestHashFile_ReadError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpfile.Name())
-	
+	defer func() { _ = os.Remove(tmpfile.Name()) }()
+
 	// Write some content and close
 	content := "test content"
 	if _, err := tmpfile.Write([]byte(content)); err != nil {
 		t.Fatal(err)
 	}
-	tmpfile.Close()
-	
+	_ = tmpfile.Close()
+
 	// Try to open directory instead of file to trigger io.Copy error
 	dir, err := os.MkdirTemp("", "test_dir")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
-	
+	defer func() { _ = os.RemoveAll(dir) }()
+
 	// This should fail when trying to read directory as file
 	_, err = HashFile(dir)
 	if err == nil {
@@ -256,7 +256,7 @@ func TestCreateStampedHash(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpfile.Name())
+	defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 	if _, err := tmpfile.Write([]byte(content)); err != nil {
 		t.Fatal(err)
@@ -323,7 +323,7 @@ func TestCreateStampedHash_Uniqueness(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpfile.Name())
+	defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 	if _, err := tmpfile.Write([]byte(content)); err != nil {
 		t.Fatal(err)
@@ -366,7 +366,7 @@ func TestVerifyStampedHash(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpfile.Name())
+	defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 	if _, err := tmpfile.Write([]byte(content)); err != nil {
 		t.Fatal(err)
@@ -411,7 +411,7 @@ func TestVerifyStampedHash_WrongFileContent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpfile1.Name())
+	defer func() { _ = os.Remove(tmpfile1.Name()) }()
 
 	if _, err := tmpfile1.Write([]byte(content1)); err != nil {
 		t.Fatal(err)
@@ -425,7 +425,7 @@ func TestVerifyStampedHash_WrongFileContent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpfile2.Name())
+	defer func() { _ = os.Remove(tmpfile2.Name()) }()
 
 	if _, err := tmpfile2.Write([]byte(content2)); err != nil {
 		t.Fatal(err)
@@ -457,7 +457,7 @@ func TestVerifyStampedHash_CorruptedHash(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpfile.Name())
+	defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 	if _, err := tmpfile.Write([]byte(content)); err != nil {
 		t.Fatal(err)
@@ -492,7 +492,7 @@ func TestVerifyStampedHash_CorruptedNonce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpfile.Name())
+	defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 	if _, err := tmpfile.Write([]byte(content)); err != nil {
 		t.Fatal(err)
@@ -528,7 +528,7 @@ func BenchmarkHashFile(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	defer os.Remove(tmpfile.Name())
+	defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 	if _, err := tmpfile.Write([]byte(content)); err != nil {
 		b.Fatal(err)
@@ -561,7 +561,7 @@ func BenchmarkCreateStampedHash(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	defer os.Remove(tmpfile.Name())
+	defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 	if _, err := tmpfile.Write([]byte(content)); err != nil {
 		b.Fatal(err)
