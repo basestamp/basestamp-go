@@ -57,7 +57,7 @@ func main() {
 
 	// Example of file-based operations
 	fmt.Println("\n--- File-based operations ---")
-	
+
 	// Create a FileStamp from a file (if we had one)
 	// fileStamp, err := basestamp.CreateFileStamp("document.pdf")
 	// if err != nil {

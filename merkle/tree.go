@@ -5,7 +5,7 @@
 // - Deterministic tree construction from arbitrary data
 // - Cryptographic proof generation for any leaf
 // - Independent proof verification
-// - Protection against second-preimage attacks via lexicographic ordering
+// - Sorted-pair parent hashing, byte-for-byte compatible with the Basestamp server
 //
 // Example usage:
 //
@@ -25,9 +25,11 @@
 package merkle
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 )
 
 // Node represents a node in the Merkle tree.
@@ -49,11 +51,11 @@ type Tree struct {
 // Proof represents a Merkle proof for a specific leaf.
 // It contains all information needed to verify that a leaf is included in the tree.
 type Proof struct {
-	LeafHash    string   `json:"leaf_hash"`
-	LeafIndex   int      `json:"leaf_index"`
-	Siblings    []string `json:"siblings"`
-	Directions  []bool   `json:"directions"` // true = right, false = left
-	RootHash    string   `json:"root_hash"`
+	LeafHash   string   `json:"leaf_hash"`
+	LeafIndex  int      `json:"leaf_index"`
+	Siblings   []string `json:"siblings"`
+	Directions []bool   `json:"directions"` // true = right, false = left
+	RootHash   string   `json:"root_hash"`
 }
 
 // NewTree creates a new Merkle tree from the given data.
@@ -78,18 +80,18 @@ func NewTree(data [][]byte) (*Tree, error) {
 	currentLevel := leaves
 	for len(currentLevel) > 1 {
 		nextLevel := make([]*Node, 0)
-		
+
 		for i := 0; i < len(currentLevel); i += 2 {
 			var left, right *Node
 			left = currentLevel[i]
-			
+
 			if i+1 < len(currentLevel) {
 				right = currentLevel[i+1]
 			} else {
 				// If odd number of nodes, duplicate the last one
 				right = currentLevel[i]
 			}
-			
+
 			// Create parent node
 			parentHash := hashPair(left.Hash, right.Hash)
 			parent := &Node{
@@ -98,10 +100,10 @@ func NewTree(data [][]byte) (*Tree, error) {
 				Right:  right,
 				IsLeaf: false,
 			}
-			
+
 			nextLevel = append(nextLevel, parent)
 		}
-		
+
 		currentLevel = nextLevel
 	}
 
@@ -111,22 +113,20 @@ func NewTree(data [][]byte) (*Tree, error) {
 	}, nil
 }
 
-// hashPair creates a hash of two concatenated hashes
+// hashPair hashes two child nodes into their parent: SHA256(min(a,b) || max(a,b)).
+//
+// The pair is sorted (byte-wise, equivalent to comparing the lowercase hex
+// encodings) before hashing, exactly as the Basestamp server does. Because of
+// the sorting, a proof's directions do not affect the computed root. A fresh
+// buffer is always allocated so callers' slices are never mutated.
 func hashPair(left, right []byte) []byte {
-	// Ensure deterministic ordering to prevent second-preimage attacks
-	var combined []byte
-	if len(left) == len(right) {
-		// For same-length hashes, use lexicographic ordering
-		if hex.EncodeToString(left) < hex.EncodeToString(right) {
-			combined = append(left, right...)
-		} else {
-			combined = append(right, left...)
-		}
-	} else {
-		// This shouldn't happen in our use case, but handle it securely
-		combined = append(left, right...)
+	combined := make([]byte, 0, len(left)+len(right))
+	if len(left) == len(right) && bytes.Compare(left, right) > 0 {
+		left, right = right, left
 	}
-	
+	combined = append(combined, left...)
+	combined = append(combined, right...)
+
 	hash := sha256.Sum256(combined)
 	return hash[:]
 }
@@ -157,7 +157,7 @@ func (t *Tree) GenerateProof(index int) (*Proof, error) {
 
 	// Trace path from leaf to root using sibling path reconstruction
 	siblings, directions := t.findSiblingsPath(index)
-	
+
 	// Convert sibling bytes to hex strings
 	for _, sibling := range siblings {
 		proof.Siblings = append(proof.Siblings, hex.EncodeToString(sibling))
@@ -171,16 +171,16 @@ func (t *Tree) GenerateProof(index int) (*Proof, error) {
 func (t *Tree) findSiblingsPath(leafIndex int) ([][]byte, []bool) {
 	siblings := make([][]byte, 0)
 	directions := make([]bool, 0)
-	
+
 	// Rebuild path from scratch (this could be optimized by storing parent pointers)
 	totalLeaves := len(t.Leaves)
 	currentIndex := leafIndex
 	currentLevelSize := totalLeaves
-	
+
 	for currentLevelSize > 1 {
 		// Determine if we're a left or right child
 		pairIndex := currentIndex ^ 1 // XOR with 1 to get sibling index
-		
+
 		if pairIndex < currentLevelSize {
 			// We have a real sibling
 			if currentIndex%2 == 0 {
@@ -190,7 +190,7 @@ func (t *Tree) findSiblingsPath(leafIndex int) ([][]byte, []bool) {
 				// We're the right child, sibling is on the left
 				directions = append(directions, false)
 			}
-			
+
 			// Get sibling hash by reconstructing the tree level
 			levelHashes := t.getLevelHashes(totalLeaves, currentLevelSize)
 			siblings = append(siblings, levelHashes[pairIndex])
@@ -201,12 +201,12 @@ func (t *Tree) findSiblingsPath(leafIndex int) ([][]byte, []bool) {
 			levelHashes := t.getLevelHashes(totalLeaves, currentLevelSize)
 			siblings = append(siblings, levelHashes[currentIndex])
 		}
-		
+
 		// Move to parent level
-		currentIndex = currentIndex / 2
+		currentIndex /= 2
 		currentLevelSize = (currentLevelSize + 1) / 2 // Ceiling division
 	}
-	
+
 	return siblings, directions
 }
 
@@ -220,68 +220,125 @@ func (t *Tree) getLevelHashes(totalLeaves, levelSize int) [][]byte {
 		}
 		return hashes
 	}
-	
+
 	// Recursive case: build from previous level
 	prevLevelSize := levelSize * 2
 	if prevLevelSize > totalLeaves {
 		prevLevelSize = totalLeaves
 	}
-	
+
 	prevHashes := t.getLevelHashes(totalLeaves, prevLevelSize)
 	currentHashes := make([][]byte, 0)
-	
+
 	for i := 0; i < len(prevHashes); i += 2 {
 		var left, right []byte
 		left = prevHashes[i]
-		
+
 		if i+1 < len(prevHashes) {
 			right = prevHashes[i+1]
 		} else {
 			right = prevHashes[i] // Duplicate for odd number
 		}
-		
+
 		parentHash := hashPair(left, right)
 		currentHashes = append(currentHashes, parentHash)
 	}
-	
+
 	return currentHashes
 }
 
+// MaxProofDepth bounds the number of siblings accepted in a proof (a tree of
+// 2^64 leaves). Deeper proofs are rejected as malformed.
+const MaxProofDepth = 64
+
+// ComputeLeafHash returns the leaf the Basestamp server places in the merkle
+// tree for a submitted hash: SHA256(utf8(nonce + hash)), hex encoded.
+//
+// nonce is the batch nonce returned by the API (the top-level "nonce" field of
+// GET /stamp/{id}, a decimal string) and hash is the 64-character hex hash that
+// was submitted. The two strings are concatenated as text - the hash is NOT hex
+// decoded first. hash is normalized (trimmed, optional 0x removed, lowercased).
+func ComputeLeafHash(hash, nonce string) (string, error) {
+	h, err := NormalizeHash(hash)
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256([]byte(nonce + h))
+	return hex.EncodeToString(sum[:]), nil
+}
+
+// NormalizeHash validates a 32-byte hex hash and returns it lowercased, with
+// surrounding whitespace and an optional 0x prefix removed.
+func NormalizeHash(hash string) (string, error) {
+	h := strings.ToLower(strings.TrimSpace(hash))
+	h = strings.TrimPrefix(h, "0x")
+	if len(h) != 64 {
+		return "", fmt.Errorf("invalid hash length: expected 64 hex characters, got %d", len(h))
+	}
+	if _, err := hex.DecodeString(h); err != nil {
+		return "", fmt.Errorf("invalid hex hash: %w", err)
+	}
+	return h, nil
+}
+
+func decodeHash(hash string) ([]byte, error) {
+	h, err := NormalizeHash(hash)
+	if err != nil {
+		return nil, err
+	}
+	return hex.DecodeString(h)
+}
+
+// ComputeRoot recomputes the merkle root implied by a proof and returns it as
+// lowercase hex. Each step hashes the current node with the next sibling using
+// hashPair (sorted pair). It returns an error for malformed proofs: non-hex or
+// wrong-length hashes, len(siblings) != len(directions), or depth > MaxProofDepth.
+func ComputeRoot(proof *Proof) (string, error) {
+	if proof == nil {
+		return "", fmt.Errorf("proof is nil")
+	}
+	if len(proof.Siblings) != len(proof.Directions) {
+		return "", fmt.Errorf("siblings (%d) and directions (%d) have different lengths", len(proof.Siblings), len(proof.Directions))
+	}
+	if len(proof.Siblings) > MaxProofDepth {
+		return "", fmt.Errorf("proof depth %d exceeds maximum %d", len(proof.Siblings), MaxProofDepth)
+	}
+	current, err := decodeHash(proof.LeafHash)
+	if err != nil {
+		return "", fmt.Errorf("leaf_hash: %w", err)
+	}
+	for i, siblingHex := range proof.Siblings {
+		sibling, err := decodeHash(siblingHex)
+		if err != nil {
+			return "", fmt.Errorf("siblings[%d]: %w", i, err)
+		}
+		if proof.Directions[i] {
+			current = hashPair(current, sibling)
+		} else {
+			current = hashPair(sibling, current)
+		}
+	}
+	return hex.EncodeToString(current), nil
+}
+
 // VerifyProof verifies a Merkle proof independently.
-// Returns true if the proof is valid and the leaf is included in the tree.
+// Returns true if leaf_hash and siblings reconstruct root_hash. Malformed proofs
+// return false. This checks only the internal consistency of the proof; binding
+// the leaf to a submitted hash (ComputeLeafHash) and the root to the blockchain
+// are separate steps.
 func VerifyProof(proof *Proof) bool {
 	if proof == nil {
 		return false
 	}
-
-	// Convert hex strings to bytes
-	currentHash, err := hex.DecodeString(proof.LeafHash)
+	root, err := NormalizeHash(proof.RootHash)
 	if err != nil {
 		return false
 	}
-	
-	// Traverse up the tree using the proof
-	for i, siblingHex := range proof.Siblings {
-		if i >= len(proof.Directions) {
-			return false
-		}
-		
-		sibling, err := hex.DecodeString(siblingHex)
-		if err != nil {
-			return false
-		}
-		
-		if proof.Directions[i] {
-			// Sibling is on the right
-			currentHash = hashPair(currentHash, sibling)
-		} else {
-			// Sibling is on the left
-			currentHash = hashPair(sibling, currentHash)
-		}
+	computed, err := ComputeRoot(proof)
+	if err != nil {
+		return false
 	}
-	
-	// Check if we've reached the expected root
-	return hex.EncodeToString(currentHash) == proof.RootHash
+	return computed == root
 }
 
 // GetLeafCount returns the number of leaves in the tree

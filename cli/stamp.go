@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -54,7 +55,7 @@ it prints the timestamp proof directly to stdout.`,
 
 func init() {
 	rootCmd.AddCommand(stampCmd)
-	
+
 	stampCmd.Flags().StringP("output", "o", "", "output file for the timestamp proof (file mode only)")
 	stampCmd.Flags().StringP("hash", "H", "", "hash to timestamp directly instead of calculating from file")
 	// Note: --wait flag kept for backward compatibility but is now always enabled
@@ -64,12 +65,12 @@ func init() {
 func runStamp(cmd *cobra.Command, args []string) error {
 	hashFlag, _ := cmd.Flags().GetString("hash")
 	outputFile, _ := cmd.Flags().GetString("output")
-	
+
 	// Determine mode: hash mode or file mode
 	var hash string
 	var filename string
 	var hashMode bool
-	
+
 	if hashFlag != "" {
 		// Hash provided via flag
 		hash = strings.TrimSpace(hashFlag)
@@ -90,7 +91,7 @@ func runStamp(cmd *cobra.Command, args []string) error {
 		filename = args[0]
 		hashMode = false
 	}
-	
+
 	// Validate hash format in hash mode
 	if hashMode {
 		if len(hash) != 64 {
@@ -99,13 +100,15 @@ func runStamp(cmd *cobra.Command, args []string) error {
 		if _, err := hex.DecodeString(hash); err != nil {
 			return fmt.Errorf("invalid hash format: must be hexadecimal")
 		}
+		// The server builds the leaf from the hash string as submitted; use the canonical form.
+		hash = strings.ToLower(hash)
 		if outputFile != "" {
 			return fmt.Errorf("--output flag cannot be used in hash mode (output goes to stdout)")
 		}
 	}
 
 	var stampedHash *crypto.StampedHash
-	
+
 	if hashMode {
 		// Hash mode - use provided hash directly
 		if verbose {
@@ -121,18 +124,18 @@ func runStamp(cmd *cobra.Command, args []string) error {
 		if outputFile == "" {
 			outputFile = filename + ".basestamp"
 		}
-		
+
 		if verbose {
 			fmt.Printf("Stamping file: %s\n", filename)
 		}
-		
+
 		// Create timestamped hash with nonce for privacy (like OpenTimestamps)
 		var err error
 		stampedHash, err = crypto.CreateStampedHash(filename)
 		if err != nil {
 			return fmt.Errorf("failed to create timestamped hash: %w", err)
 		}
-		
+
 		if verbose {
 			fmt.Printf("File hash: %s\n", stampedHash.FileHash)
 			fmt.Printf("Nonce: %s\n", stampedHash.Nonce)
@@ -159,7 +162,7 @@ func runStamp(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if verbose {
 		fmt.Printf("🔍 DEBUG: Response status: %s\n", resp.Status)
@@ -226,7 +229,7 @@ func runStamp(cmd *cobra.Command, args []string) error {
 			Nonce:     stampedHash.Nonce,    // Privacy nonce
 			Algorithm: "SHA256",
 			CreatedAt: time.Now(),
-			Proofs:    []types.Proof{},     // Will be populated with complete data
+			Proofs:    []types.Proof{}, // Will be populated with complete data
 			StampID:   stampID,
 		}
 
@@ -250,7 +253,7 @@ func runStamp(cmd *cobra.Command, args []string) error {
 		if err := saveStampToFile(fileStamp, outputFile); err != nil {
 			return fmt.Errorf("failed to save stamp: %w", err)
 		}
-		
+
 		fmt.Printf("Timestamp proof saved to: %s\n", outputFile)
 		fmt.Println("Timestamp confirmed on blockchain!")
 	}
@@ -258,28 +261,27 @@ func runStamp(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-
 func waitForConfirmation(stampID string, hashMode bool) (map[string]interface{}, error) {
 	serverURL := viper.GetString("server")
-	
+
 	if verbose {
 		fmt.Printf("🔍 DEBUG: Waiting for confirmation of stamp ID: %s\n", stampID)
 	}
-	
+
 	for i := 0; i < 60; i++ {
 		if verbose {
 			fmt.Printf("🔍 DEBUG: Checking status (attempt %d/60)...\n", i+1)
 		}
-		
+
 		time.Sleep(10 * time.Second)
-		
+
 		// Use the correct endpoint - /stamp/{stampId} for status
-		statusURL := serverURL + "/stamp/" + stampID
-		
+		statusURL := serverURL + "/stamp/" + url.PathEscape(stampID)
+
 		if verbose {
 			fmt.Printf("🔍 DEBUG: GET %s\n", statusURL)
 		}
-		
+
 		resp, err := cliHTTP.Get(statusURL)
 		if err != nil {
 			if verbose {
@@ -287,29 +289,29 @@ func waitForConfirmation(stampID string, hashMode bool) (map[string]interface{},
 			}
 			continue
 		}
-		
+
 		bodyBytes, err := io.ReadAll(resp.Body)
-		resp.Body.Close()
-		
+		_ = resp.Body.Close()
+
 		if err != nil {
 			if verbose {
 				fmt.Printf("🔍 DEBUG: Failed to read response: %v\n", err)
 			}
 			continue
 		}
-		
+
 		if verbose {
 			fmt.Printf("🔍 DEBUG: Response status: %s\n", resp.Status)
 			fmt.Printf("🔍 DEBUG: Response body: %s\n", string(bodyBytes))
 		}
-		
+
 		if resp.StatusCode != http.StatusOK {
 			if verbose {
 				fmt.Printf("🔍 DEBUG: Server returned error: %s\n", resp.Status)
 			}
 			continue
 		}
-		
+
 		var status map[string]interface{}
 		if err := json.Unmarshal(bodyBytes, &status); err != nil {
 			if verbose {
@@ -317,9 +319,10 @@ func waitForConfirmation(stampID string, hashMode bool) (map[string]interface{},
 			}
 			continue
 		}
-		
+
 		if statusStr, ok := status["status"].(string); ok {
-			if statusStr == "confirmed" {
+			switch statusStr {
+			case "confirmed":
 				if hashMode {
 					fmt.Fprintf(os.Stderr, "✅ Confirmed! TX: %s\n", status["tx_id"])
 					if explorerURL := getExplorerURL(status["network"], status["tx_id"]); explorerURL != "" {
@@ -331,14 +334,14 @@ func waitForConfirmation(stampID string, hashMode bool) (map[string]interface{},
 						fmt.Printf("🔗 Explorer: %s\n", explorerURL)
 					}
 				}
-				
+
 				// Note: Advanced blockchain verification would require additional infrastructure
-				
+
 				return status, nil
-			} else if statusStr == "failed" {
+			case "failed":
 				return nil, fmt.Errorf("timestamp failed: %s", status["message"])
 			}
-			
+
 			if hashMode {
 				fmt.Fprintf(os.Stderr, "⏳ Status: %s", statusStr)
 				if message, ok := status["message"].(string); ok {
@@ -354,7 +357,7 @@ func waitForConfirmation(stampID string, hashMode bool) (map[string]interface{},
 			}
 		}
 	}
-	
+
 	return nil, fmt.Errorf("timeout waiting for confirmation after 10 minutes")
 }
 
@@ -362,11 +365,11 @@ func waitForConfirmation(stampID string, hashMode bool) (map[string]interface{},
 func getExplorerURL(networkInterface, txIDInterface interface{}) string {
 	network, ok1 := networkInterface.(string)
 	txID, ok2 := txIDInterface.(string)
-	
+
 	if !ok1 || !ok2 || txID == "" {
 		return ""
 	}
-	
+
 	switch network {
 	case "BASE Sepolia":
 		return fmt.Sprintf("https://sepolia.basescan.org/tx/%s", txID)
@@ -384,4 +387,3 @@ func getStringFromMap(m map[string]interface{}, key string) string {
 	}
 	return ""
 }
-

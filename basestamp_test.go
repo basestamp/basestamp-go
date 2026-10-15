@@ -91,6 +91,8 @@ func TestNewClientWithURL_TrailingSlash(t *testing.T) {
 	}
 }
 
+const testHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
 func TestSubmitSHA256(t *testing.T) {
 	// Create a test server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -109,8 +111,8 @@ func TestSubmitSHA256(t *testing.T) {
 		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 			t.Errorf("Failed to decode request body: %v", err)
 		}
-		if reqBody["hash"] != "test_hash" {
-			t.Errorf("Expected hash 'test_hash', got %s", reqBody["hash"])
+		if reqBody["hash"] != testHash {
+			t.Errorf("Expected hash %s, got %s", testHash, reqBody["hash"])
 		}
 
 		// Send response
@@ -124,7 +126,7 @@ func TestSubmitSHA256(t *testing.T) {
 	defer server.Close()
 
 	client := NewClientWithURL(server.URL)
-	stampID, err := client.SubmitSHA256("test_hash")
+	stampID, err := client.SubmitSHA256(testHash)
 	if err != nil {
 		t.Fatalf("SubmitSHA256 failed: %v", err)
 	}
@@ -141,7 +143,7 @@ func TestSubmitSHA256_ServerError(t *testing.T) {
 	defer server.Close()
 
 	client := NewClientWithURL(server.URL)
-	_, err := client.SubmitSHA256("test_hash")
+	_, err := client.SubmitSHA256(testHash)
 	if err == nil {
 		t.Error("Expected error for server error response")
 	}
@@ -158,7 +160,7 @@ func TestSubmitSHA256_InvalidJSON(t *testing.T) {
 	defer server.Close()
 
 	client := NewClientWithURL(server.URL)
-	_, err := client.SubmitSHA256("test_hash")
+	_, err := client.SubmitSHA256(testHash)
 	if err == nil {
 		t.Error("Expected error for invalid JSON response")
 	}
@@ -200,7 +202,7 @@ func TestGetStamp_WithWait(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callCount++
 		var response map[string]interface{}
-		
+
 		if callCount == 1 {
 			// First call - no merkle proof
 			response = map[string]interface{}{
@@ -212,7 +214,7 @@ func TestGetStamp_WithWait(t *testing.T) {
 			// Second call - with merkle proof
 			response = map[string]interface{}{
 				"stamp_id": "test_stamp_id",
-				"hash":     "test_hash", 
+				"hash":     "test_hash",
 				"status":   "confirmed",
 				"merkle_proof": map[string]interface{}{
 					"leaf_hash": "test_hash",
@@ -241,7 +243,7 @@ func TestGetStamp_WithWait(t *testing.T) {
 func TestStamp_Verify(t *testing.T) {
 	// Use actual SHA256 hashes for a valid single-leaf tree
 	leafHash := "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" // SHA256 of empty string
-	
+
 	response := map[string]interface{}{
 		"merkle_proof": map[string]interface{}{
 			"leaf_hash":  leafHash,
@@ -250,25 +252,31 @@ func TestStamp_Verify(t *testing.T) {
 			"directions": []interface{}{},
 		},
 	}
-	
+
 	stamp := &Stamp{
 		StampID:  "test_id",
 		response: response,
 	}
 
-	valid, err := stamp.Verify(leafHash)
+	valid, err := stamp.VerifyOffline(leafHash)
 	if err != nil {
-		t.Fatalf("Verify failed: %v", err)
+		t.Fatalf("VerifyOffline failed: %v", err)
 	}
 	if !valid {
-		t.Error("Expected verification to succeed for matching hash")
+		t.Error("Expected offline verification to succeed for matching hash")
+	}
+
+	// Full verification must not report success without an on-chain anchor.
+	valid, err = stamp.Verify(leafHash)
+	if err == nil || valid {
+		t.Errorf("Expected Verify to fail without tx_id, got valid=%v err=%v", valid, err)
 	}
 }
 
 func TestStamp_Verify_WrongHash(t *testing.T) {
 	leafHash := "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 	wrongHash := "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08" // SHA256 of "test"
-	
+
 	response := map[string]interface{}{
 		"merkle_proof": map[string]interface{}{
 			"leaf_hash":  leafHash,
@@ -277,7 +285,7 @@ func TestStamp_Verify_WrongHash(t *testing.T) {
 			"directions": []interface{}{},
 		},
 	}
-	
+
 	stamp := &Stamp{
 		StampID:  "test_id",
 		response: response,
@@ -296,7 +304,7 @@ func TestStamp_Verify_NoMerkleProof(t *testing.T) {
 	response := map[string]interface{}{
 		"status": "pending",
 	}
-	
+
 	stamp := &Stamp{
 		StampID:  "test_id",
 		response: response,
@@ -317,7 +325,7 @@ func TestStamp_GetHash(t *testing.T) {
 			"leaf_hash": "test_hash_value",
 		},
 	}
-	
+
 	stamp := &Stamp{
 		StampID:  "test_id",
 		response: response,
@@ -337,7 +345,7 @@ func TestStamp_GetStampedAt(t *testing.T) {
 	response := map[string]interface{}{
 		"timestamp": testTime,
 	}
-	
+
 	stamp := &Stamp{
 		StampID:  "test_id",
 		response: response,
@@ -347,7 +355,7 @@ func TestStamp_GetStampedAt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetStampedAt failed: %v", err)
 	}
-	
+
 	expectedTime, _ := time.Parse(time.RFC3339, testTime)
 	if !stampedAt.Equal(expectedTime) {
 		t.Errorf("Expected time %v, got %v", expectedTime, stampedAt)
@@ -362,7 +370,7 @@ func TestStamp_GetBlockchainInfo(t *testing.T) {
 	response := map[string]interface{}{
 		"blockchain_info": blockchainData,
 	}
-	
+
 	stamp := &Stamp{
 		StampID:  "test_id",
 		response: response,
@@ -382,7 +390,7 @@ func TestStamp_GetRawResponse(t *testing.T) {
 		"test_key": "test_value",
 		"status":   "confirmed",
 	}
-	
+
 	stamp := &Stamp{
 		StampID:  "test_id",
 		response: response,
@@ -536,7 +544,7 @@ func TestStamp_GetBlockchainInfo_ErrorCases(t *testing.T) {
 }
 
 func TestGetStamp_NetworkError(t *testing.T) {
-	client := NewClientWithURL("http://invalid-domain-that-does-not-exist-12345.com")
+	client := NewClientWithURL("http://127.0.0.1:1") // closed port: fails fast without DNS
 	_, err := client.GetStamp("test_id", NoWait())
 	if err == nil {
 		t.Error("Expected network error for invalid domain")
@@ -556,11 +564,11 @@ func TestGetStampWithWait_TimeoutError(t *testing.T) {
 	defer server.Close()
 
 	client := NewClientWithURL(server.URL)
-	
+
 	// This would normally timeout, but we don't want the test to take that long
 	// Instead we'll patch the getStampWithWait function to have shorter timeout
 	// For now, just test the successful case with fewer attempts
-	_, err := client.GetStamp("test_stamp_id", nil) // Use defaults (Wait: true)
+	_, err := client.GetStamp("test_stamp_id", &GetStampOptions{MaxAttempts: 3, RetryDelay: time.Millisecond})
 	if err == nil {
 		t.Error("Expected timeout error when merkle proof never becomes available")
 	}

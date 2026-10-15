@@ -6,9 +6,9 @@ BaseStamp is a cryptographic timestamping service that anchors file hashes to th
 
 - **Go Client Library**: Easy-to-use API similar to the Python client
 - **Command-Line Interface**: Simple CLI tool for timestamping files
-- **Blockchain Verification**: Trustless verification using Merkle proofs
+- **Blockchain Verification**: Trustless verification using Merkle proofs and direct JSON-RPC checks of the Basestamp contract
 - **Privacy Protection**: Uses nonces to protect file contents
-- **Multiple Networks**: Supports Ethereum, Base, and other EVM chains
+- **Networks**: Base mainnet (default, chain 8453) and Base Sepolia testnet
 
 ## Installation
 
@@ -135,7 +135,7 @@ func main() {
         log.Fatal(err)
     }
     
-    // Verify the stamp
+    // Verify the stamp: leaf binding, merkle path and on-chain anchor
     valid, err := stamp.Verify(hash)
     if err != nil {
         log.Fatal(err)
@@ -166,6 +166,22 @@ rawResponse := stamp.GetRawResponse()
 
 // Get blockchain information
 blockchainInfo, err := stamp.GetBlockchainInfo()
+
+// Detailed verification (block number, timestamp, confirmations)
+res, err := stamp.VerifyDetailed(ctx, hash)
+fmt.Println(res.Anchor.BlockNumber, res.Anchor.BlockTimestamp, res.TxID)
+
+// Merkle-only check (no network; does NOT prove on-chain anchoring)
+ok, err := stamp.VerifyOffline(hash)
+
+// Verify a saved API response later
+var saved map[string]interface{} // GET /stamp/{id} JSON
+res, err = basestamp.NewStampFromResponse(nil, saved).VerifyDetailed(ctx, hash)
+
+// Use your own RPC endpoint (verification stays pinned to Base mainnet)
+cfg := blockchain.Mainnet
+cfg.RPCURL = "https://your-base-rpc.example"
+client = basestamp.NewClient().WithChain(cfg)
 ```
 
 ## API Reference
@@ -173,14 +189,20 @@ blockchainInfo, err := stamp.GetBlockchainInfo()
 ### Client Methods
 
 - `NewClient()` - Create client with default API URL
-- `NewClientWithURL(url)` - Create client with custom API URL
-- `SubmitSHA256(hash)` - Submit hash for timestamping
+- `NewClientWithURL(url)` - Create client with custom API URL (verification pinned to mainnet unless `url` is `SepoliaAPIURL`)
+- `WithChain(cfg)` - Choose the deployment (`blockchain.Mainnet`, `blockchain.Sepolia`, custom RPC) for on-chain verification
+- `SubmitSHA256(hash)` / `SubmitSHA256Context(ctx, hash)` - Submit a 64-hex-char hash (normalized to lowercase)
 - `GetStamp(stampID, opts)` - Get stamp with configurable options
 
 ### Stamp Methods
 
-- `Verify(hash)` - Verify hash against Merkle proof
-- `GetHash()` - Get the timestamped hash
+- `Verify(hash)` - Full verification (leaf binding + merkle path + on-chain anchor). Returns
+  `(false, nil)` if `hash` is not this stamp's hash and `(false, err)` for any other failure
+  (`errors.Is(err, basestamp.ErrInvalidProof)`, `errors.Is(err, blockchain.ErrNotAnchored)`)
+- `VerifyDetailed(ctx, hash)` - Same checks, returns `*VerificationResult` with the on-chain `Anchor`
+- `VerifyOffline(hash)` - Leaf binding + merkle path only (no network)
+- `GetHash()` - Get the submitted hash
+- `GetNonce()`, `GetTxID()`, `GetMerkleRoot()`, `GetStatus()` - Response fields
 - `GetStampedAt()` - Get the stamp time
 - `GetBlockchainInfo()` - Get blockchain transaction info
 - `GetRawResponse()` - Get raw API response
@@ -235,8 +257,11 @@ err = basestamp.SaveFileStamp(fileStamp, "document.pdf.basestamp")
 // Load FileStamp from disk
 loadedStamp, err := basestamp.LoadFileStamp("document.pdf.basestamp")
 
-// Verify file against its stamp file
+// Verify file against its stamp file (local file/nonce check only)
 valid, err := basestamp.VerifyFileStamp("document.pdf", "document.pdf.basestamp")
+
+// Verify file, stored merkle proof and on-chain anchor
+res, err := basestamp.VerifyFileStampProof(ctx, "document.pdf", "document.pdf.basestamp", nil)
 
 // Calculate file hash directly
 hash, err := basestamp.CalculateFileHash("document.pdf")
@@ -272,7 +297,16 @@ go build ./cmd/basestamp
 
 ```bash
 go test ./...
+
+# Re-verify the real mainnet vectors against Base RPC (read-only, free)
+BASESTAMP_ONLINE=1 go test -run TestOnChainVectors -v .
+
+# End-to-end on Base mainnet: stamps ONE random hash (costs the service real ETH)
+BASESTAMP_E2E=1 go test -run TestE2EMainnet -v -timeout 20m .
 ```
+
+`testdata/vectors.json` holds cross-SDK test vectors shared with
+basestamp-ts and basestamp-python (real mainnet proofs plus tampered cases).
 
 ### Releasing
 
@@ -300,11 +334,32 @@ The CLI uses the following configuration:
 ## How It Works
 
 1. **File Hashing**: Your file is hashed locally using SHA256
-2. **Privacy Nonce**: A random nonce is added for privacy (like OpenTimestamps)
-3. **Batch Processing**: Hashes are batched into Merkle trees for efficiency
-4. **Blockchain Anchoring**: Merkle roots are written to the blockchain
-5. **Proof Generation**: Merkle proofs are generated for verification
+2. **Privacy Nonce** (CLI file mode): the CLI submits `SHA256(file_hash_hex + random_nonce_hex)` and
+   stores the nonce in the `.basestamp` file
+3. **Batch Processing**: Every ~5s the server builds a Merkle tree over the pending hashes
+4. **Blockchain Anchoring**: The root is passed to `stamp(bytes32)` on the Basestamp contract
+5. **Proof Generation**: `GET /stamp/{id}` returns the proof, batch nonce and transaction
 6. **Trustless Verification**: Anyone can verify proofs independently
+
+### Proof format (what `Verify` checks)
+
+Given the submitted hash `hash` (64 lowercase hex chars) and the API response:
+
+1. **Leaf**: `merkle_proof.leaf_hash == SHA256(utf8(nonce + hash))`, where `nonce` is the top-level
+   `nonce` field (a decimal batch nonce). The two strings are concatenated as text; the hash is not
+   hex-decoded. (Legacy proofs without a nonce: `leaf_hash == hash`.)
+2. **Path**: starting from the leaf, for each sibling `parent = SHA256(min(a, b) || max(a, b))` over
+   the raw 32-byte values (sorted pair; an odd last node is paired with itself). Because pairs are
+   sorted, `directions` are informational and do not change the result. The final value must equal
+   `merkle_proof.root_hash`, which must equal `merkle_root`.
+3. **On-chain** (Base mainnet, chain 8453, contract `0x634494cB65B17163A4ca84378900Ff53A4Bba05C`,
+   signer `0x0a3861972b28e6be9fEB826dd809aEB4F473e753`): via JSON-RPC, `eth_chainId` is 8453; the
+   receipt of `tx_id` has status 1 and `to == contract`; it contains a
+   `Stamped(bytes32 indexed hash, uint256 timestamp, uint256 blockNumber, address indexed submitter)`
+   log from the contract with `hash == root` and `submitter == signer`; the transaction input is
+   `stamp(root)` (`0xdd89581f`) sent by the signer; and the block has at least one confirmation.
+
+The chain is pinned by the client, never taken from the server response.
 
 ## Security
 
