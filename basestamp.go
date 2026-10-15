@@ -44,7 +44,24 @@ import (
 	"github.com/basestamp/basestamp-go/types"
 )
 
-const DefaultAPIURL = "https://api.basestamp.io"
+// Network endpoints and on-chain parameters.
+const (
+	// MainnetAPIURL is the Base mainnet (chain 8453) BaseStamp API. This is the default.
+	MainnetAPIURL = "https://api-mainnet.basestamp.io"
+	// SepoliaAPIURL is the Base Sepolia testnet (chain 84532) BaseStamp API.
+	SepoliaAPIURL = "https://api-sepolia.basestamp.io"
+
+	MainnetChainID         = 8453
+	MainnetContractAddress = "0x634494cB65B17163A4ca84378900Ff53A4Bba05C"
+	MainnetRPCURL          = "https://mainnet.base.org"
+
+	SepoliaChainID         = 84532
+	SepoliaContractAddress = "0x15Adb2cc1aEDB6610E1C801BE7E205be3A8De5d7"
+	SepoliaRPCURL          = "https://sepolia.base.org"
+
+	// DefaultAPIURL is used when no URL is given. Defaults to Base mainnet since v0.2.0.
+	DefaultAPIURL = MainnetAPIURL
+)
 
 // Client represents a BaseStamp API client
 type Client struct {

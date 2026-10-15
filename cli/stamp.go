@@ -49,7 +49,7 @@ it prints the timestamp proof directly to stdout.`,
   basestamp stamp document.pdf --verbose
 
   # Stamp using a different server
-  basestamp stamp document.pdf --server https://api.basestamp.io`,
+  basestamp stamp document.pdf --server https://api-sepolia.basestamp.io   # Base Sepolia testnet`,
 }
 
 func init() {
@@ -370,7 +370,7 @@ func getExplorerURL(networkInterface, txIDInterface interface{}) string {
 	switch network {
 	case "BASE Sepolia":
 		return fmt.Sprintf("https://sepolia.basescan.org/tx/%s", txID)
-	case "BASE":
+	case "BASE", "BASE Mainnet":
 		return fmt.Sprintf("https://basescan.org/tx/%s", txID)
 	default:
 		return ""
